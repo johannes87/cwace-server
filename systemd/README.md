@@ -13,8 +13,8 @@ live game console.
 ## Install (as root, on the server)
 
     # 1. dedicated service account, owning the game directory
-    useradd --system --home-dir /opt/cwace --shell /usr/sbin/nologin cwace
-    chown -R cwace:cwace /opt/cwace
+    useradd --system --home-dir /home/cwace-server --shell /usr/sbin/nologin cwace
+    chown -R cwace:cwace /home/cwace-server
 
     # 2. tell the units where the game lives
     install -m 0644 cwace.default /etc/default/cwace
@@ -75,3 +75,44 @@ Raw equivalent, if you'd rather not use the helper:
   `exec`, leaving an extra `/bin/sh` in the process tree. Changing
   `./oa-ioq3ded.x86_64 \` to `exec ./oa-ioq3ded.x86_64 \` makes the game the
   direct child. Not required — systemd kills the whole cgroup either way.
+
+## Troubleshooting
+
+### `ExecStartPre=... status=1/FAILURE`
+
+`test -x $CWACE_DIR/start_<server>.sh` returned false. Check, in this order:
+
+1. **Is the game directory under `/home` or `/root`?** `ProtectHome=yes` hides
+   both from the service, so the path does not exist as far as the service is
+   concerned — even though `ls` works fine in your root shell. The shipped unit
+   sets `ProtectHome=no` for exactly this reason (the install lives in
+   `/home/cwace-server`); if you re-enable it, the service will stop starting.
+   `read-only` is not a workaround: the game writes logs and configs back into
+   its own directory.
+2. **Is `CWACE_DIR` actually set?** An unset variable expands to empty, making
+   the test `/start_<server>.sh`. Verify with:
+
+        cat /etc/default/cwace
+        systemctl show cwace@instactf -p Environment
+
+3. **Can the `cwace` user execute the script?** The scripts ship mode 0750, so
+   they need the right owner:
+
+        sudo -u cwace test -x /home/cwace-server/start_instactf.sh && echo ok
+        chown -R cwace:cwace /home/cwace-server
+        chmod +x /home/cwace-server/start_*.sh
+
+After changing the unit or `/etc/default/cwace`, always:
+
+    systemctl daemon-reload
+    systemctl restart cwace@instactf
+
+### Service flaps / `activating (auto-restart)` in a loop
+
+`Restart=always` retries every 5s. Watch what the game itself says:
+
+    journalctl -u cwace@instactf -f
+
+If the console has output worth reading, attach before it dies: `cwace-attach
+instactf`. A missing `oa-ioq3ded.x86_64` exec bit, a bad `+map`, or a port
+already in use all show up there.

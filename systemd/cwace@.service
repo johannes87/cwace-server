@@ -12,8 +12,8 @@ PartOf=cwace.target
 
 [Service]
 Type=forking
-User=cwace
-Group=cwace
+User=cwace-server
+Group=cwace-server
 
 # CWACE_DIR lives here. Changing the user/group requires editing this unit
 # (or a drop-in), since systemd cannot read User= from an EnvironmentFile.
@@ -43,8 +43,14 @@ RestartSec=5
 # Do NOT enable PrivateTmp or ProtectSystem=strict without also making
 # /run/cwace visible -- the tmux socket has to be reachable from outside.
 NoNewPrivileges=yes
-ProtectHome=yes
 ProtectSystem=full
+
+# ProtectHome must stay "no": the install lives in /home/cwace-server, and
+# ProtectHome=yes would blank /home out for the service (ExecStartPre then
+# fails with status=1 even though the path exists in your shell). read-only
+# is not enough either -- the game writes its logs, q3config_server.cfg and
+# downloaded pk3s back into its own directory.
+ProtectHome=no
 
 [Install]
 WantedBy=multi-user.target
