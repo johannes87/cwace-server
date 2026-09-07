@@ -1,7 +1,7 @@
 # HTTP fast-download (nginx)
 
 `sv_dlURL` in [`cmod/common.cfg`](../cmod/common.cfg) points clients at
-`http://cwace.rfc.wtf`. This serves the pk3s from `$CWACE_DIR` so joining
+`http://10.0.1.120`. This serves the pk3s from `$CWACE_DIR` so joining
 players pull maps over HTTP instead of the game's own slow UDP download.
 
 ## Install (as root)
@@ -43,9 +43,9 @@ config only matches `.pk3` under `baseoa/` and `cmod/`.
 
 ## Verify
 
-    curl -sI http://cwace.rfc.wtf/cmod/zzzz-cmod.pk3 | head -1   # 200
-    curl -sI http://cwace.rfc.wtf/cmod/instactf.cfg  | head -1   # 404
-    curl -sI http://cwace.rfc.wtf/                   | head -1   # 404
+    curl -sI http://10.0.1.120:8000/cmod/zzzz-cmod.pk3 | head -1   # 200
+    curl -sI http://10.0.1.120:8000/cmod/instactf.cfg  | head -1   # 404
+    curl -sI http://10.0.1.120:8000/                   | head -1   # 404
 
 A client that still downloads slowly has `cl_allowDownload 0`, or hit a 404 and
 fell back to UDP — check `/var/log/nginx/cwace-access.log`.
