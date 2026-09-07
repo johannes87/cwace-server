@@ -50,6 +50,29 @@ config only matches `.pk3` under `baseoa/` and `cmod/`.
 A client that still downloads slowly has `cl_allowDownload 0`, or hit a 404 and
 fell back to UDP — check `/var/log/nginx/cwace-access.log`.
 
+## nginx still listens on port 80
+
+That is Debian's stock site, not this one — `apt install nginx` enables
+`/etc/nginx/sites-enabled/default`, which contains `listen 80 default_server;`.
+This vhost only binds 8000, so both listen at once.
+
+Check what is actually loaded — `nginx -T` dumps the fully merged config:
+
+    nginx -T | grep -E 'listen|server_name|# configuration file'
+    ss -ltnp | grep -E ':(80|8000)\b'
+
+To stop serving port 80 at all:
+
+    rm /etc/nginx/sites-enabled/default
+    nginx -t && systemctl reload nginx
+
+Leaving it enabled is harmless for the game — clients only ever ask for
+`10.0.1.120:8000` — but it does publish nginx's welcome page on the LAN.
+
+If `nginx -T` shows no `listen 8000` line, this site is not enabled: re-check
+that the symlink in `sites-enabled/` exists (or that the file landed in
+`conf.d/`) and reload.
+
 ## Adding a mod directory
 
 The location block whitelists `baseoa` and `cmod` explicitly. A new mod needs
