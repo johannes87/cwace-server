@@ -76,6 +76,11 @@ Raw equivalent, if you'd rather not use the helper:
   `./oa-ioq3ded.x86_64 \` to `exec ./oa-ioq3ded.x86_64 \` makes the game the
   direct child. Not required — systemd kills the whole cgroup either way.
 
+## Fast downloads
+
+The `sv_dlURL` HTTP server that hands out the pk3s is configured separately —
+see [`../nginx/README.md`](../nginx/README.md).
+
 ## Troubleshooting
 
 ### `ExecStartPre=... status=1/FAILURE`
