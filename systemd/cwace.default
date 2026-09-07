@@ -1,0 +1,4 @@
+# Installed to /etc/default/cwace -- read by cwace@.service.
+# Absolute path to the directory holding the start_<server>.sh scripts,
+# the oa-ioq3ded binary, baseoa/ and cmod/. No trailing slash.
+CWACE_DIR=/opt/cwace

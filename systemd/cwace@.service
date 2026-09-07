@@ -1,0 +1,50 @@
+# Templated OpenArena dedicated server.
+# The instance name is the server name, matching start_<server>.sh in $CWACE_DIR.
+#   systemctl start cwace@instactf4
+# runs $CWACE_DIR/start_instactf4.sh inside a dedicated tmux session.
+
+[Unit]
+Description=OpenArena dedicated server (%i)
+Documentation=file:///etc/default/cwace
+After=network-online.target
+Wants=network-online.target
+PartOf=cwace.target
+
+[Service]
+Type=forking
+User=cwace
+Group=cwace
+
+# CWACE_DIR lives here. Changing the user/group requires editing this unit
+# (or a drop-in), since systemd cannot read User= from an EnvironmentFile.
+EnvironmentFile=/etc/default/cwace
+
+# Per-instance tmux socket under /run/cwace/<server>/, so each service
+# gets its own tmux server inside its own cgroup. Sharing one tmux server
+# across units would put every session in whichever cgroup started first.
+RuntimeDirectory=cwace/%i
+RuntimeDirectoryMode=0750
+
+ExecStartPre=/usr/bin/test -x ${CWACE_DIR}/start_%i.sh
+ExecStart=/usr/bin/tmux -S /run/cwace/%i/console.sock new-session -d -s %i -c ${CWACE_DIR} ${CWACE_DIR}/start_%i.sh
+
+# Ask the game to shut down cleanly via its own console. Anything still
+# alive when this returns gets SIGTERM from systemd within TimeoutStopSec.
+ExecStop=-/usr/bin/tmux -S /run/cwace/%i/console.sock send-keys -t %i quit Enter
+TimeoutStopSec=15
+
+# Note: Restart=always, not on-failure. tmux daemonizes, so systemd cannot
+# determine a main PID and reports every exit as success -- on-failure would
+# never fire. The trade-off is that typing "quit" in the console restarts the
+# server; use `systemctl stop cwace@%i` to actually stop it.
+Restart=always
+RestartSec=5
+
+# Do NOT enable PrivateTmp or ProtectSystem=strict without also making
+# /run/cwace visible -- the tmux socket has to be reachable from outside.
+NoNewPrivileges=yes
+ProtectHome=yes
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

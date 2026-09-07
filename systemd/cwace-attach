@@ -1,0 +1,48 @@
+#!/bin/sh
+# Attach to the console of a running OpenArena server.
+#   cwace-attach              list running servers
+#   cwace-attach instactf4    attach to that server's console
+#   cwace-attach -r instactf4 attach read-only (watch without typing)
+#
+# Detach with Ctrl-b d. Detaching leaves the server running; closing the
+# session with "quit" makes systemd restart it (Restart=always).
+set -e
+
+RUNDIR=/run/cwace
+CWACE_USER=cwace
+
+usage() {
+  echo "usage: ${0##*/} [-r] <server>" >&2
+  echo "running servers:" >&2
+  for sock in "$RUNDIR"/*/console.sock; do
+    [ -S "$sock" ] || { echo "  (none)" >&2; return; }
+    name=${sock%/console.sock}
+    echo "  ${name##*/}" >&2
+  done
+}
+
+READONLY=""
+if [ "$1" = "-r" ]; then
+  READONLY="-r"
+  shift
+fi
+
+SERVER=$1
+if [ -z "$SERVER" ]; then
+  usage
+  exit 1
+fi
+
+SOCK="$RUNDIR/$SERVER/console.sock"
+if [ ! -S "$SOCK" ]; then
+  echo "${0##*/}: $SERVER is not running (no socket at $SOCK)" >&2
+  usage
+  exit 1
+fi
+
+# The socket is mode 0600 owned by the service user, so attach as that user.
+if [ "$(id -un)" = "$CWACE_USER" ]; then
+  exec tmux -S "$SOCK" attach $READONLY -t "$SERVER"
+else
+  exec sudo -u "$CWACE_USER" tmux -S "$SOCK" attach $READONLY -t "$SERVER"
+fi

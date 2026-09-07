@@ -1,0 +1,17 @@
+# Convenience grouping: start/stop every server at once.
+#   systemctl start cwace.target
+#   systemctl enable cwace.target   (plus enabling each instance)
+
+[Unit]
+Description=All OpenArena dedicated servers
+Wants=cwace@ctf.service
+Wants=cwace@dm.service
+Wants=cwace@instactf.service
+Wants=cwace@instactf1.service
+Wants=cwace@instactf2.service
+Wants=cwace@instactf3.service
+Wants=cwace@instactf4.service
+Wants=cwace@instadm.service
+
+[Install]
+WantedBy=multi-user.target
