@@ -9,7 +9,7 @@
 set -e
 
 RUNDIR=/run/cwace
-CWACE_USER=cwace
+CWACE_USER=cwace-server
 
 usage() {
   echo "usage: ${0##*/} [-r] <server>" >&2
