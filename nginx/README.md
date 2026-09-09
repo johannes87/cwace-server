@@ -73,6 +73,20 @@ If `nginx -T` shows no `listen 8000` line, this site is not enabled: re-check
 that the symlink in `sites-enabled/` exists (or that the file landed in
 `conf.d/`) and reload.
 
+## A pk3 404s
+
+404 means the path resolved but the file was not there — a permissions problem
+returns 403, and nothing listening returns connection refused. Two causes:
+
+**1. `root` points at the wrong directory.** It must be the directory that
+directly contains `baseoa/` and `cmod/`, and must match `CWACE_DIR` in
+`/etc/default/cwace`. The error log prints the full path it tried:
+
+    tail -5 /var/log/nginx/cwace-error.log
+    # open() "/home/cwace-server/cwace-server/cmod/zzzz-pmodels.pk3" failed (2: No such file...)
+
+    find /home/cwace-server -name 'zzzz-pmodels.pk3'   # where it really is
+
 ## Adding a mod directory
 
 The location block whitelists `baseoa` and `cmod` explicitly. A new mod needs
