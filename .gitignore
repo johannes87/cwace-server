@@ -1,1 +1,3 @@
 *.pk3
+# small paks carrying game logic (QVMs) are tracked
+!/cmod/zzzzz-cmod-timer.pk3
