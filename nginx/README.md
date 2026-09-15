@@ -43,7 +43,7 @@ config only matches `.pk3` under `baseoa/` and `cmod/`.
 
 ## Verify
 
-    curl -sI http://10.0.1.120:8000/cmod/zzzz-cmod.pk3 | head -1   # 200
+    curl -sI http://10.0.1.120:8000/cmod/zzzzz-cmod.pk3 | head -1  # 200
     curl -sI http://10.0.1.120:8000/cmod/instactf.cfg  | head -1   # 404
     curl -sI http://10.0.1.120:8000/                   | head -1   # 404
 
